@@ -3,23 +3,32 @@ using UnityEngine;
 
 namespace GameJamEntry.Gameplay {
 	public class Player : MonoBehaviour {
-		[SerializeField] BaseGun   Gun;
+		BaseGun _gun;
+
+		[SerializeField] float     MovementSpeed = 1f;
+		[SerializeField] float     OverlapRadius = 1f;
 		[SerializeField] Transform GunHolder;
 		
 		void Update() {
 			TryPickUpWeapon();
 			TryOperateGun();
+			TryMove();
+		}
+
+		void TryMove() {
+			var move = new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), 0);
+			transform.position += move * MovementSpeed * Time.deltaTime;
 		}
 		
 		void TryOperateGun() {
-			if ( !Gun ) {
+			if ( !_gun ) {
 				return;
 			}
 			if ( Input.GetKeyDown(KeyCode.Mouse0) ) {
-				Gun.StartFire();
+				_gun.StartFire();
 			}
 			if ( Input.GetKeyUp(KeyCode.Mouse0) ) {
-				Gun.EndFire();
+				_gun.EndFire();
 			}
 		}
 
@@ -27,7 +36,8 @@ namespace GameJamEntry.Gameplay {
 			if ( !Input.GetKeyDown(KeyCode.E) ) {
 				return;
 			}
-			var weapon = Physics2D.OverlapCircle(transform.position, 1f, LayerMask.GetMask("Default"));
+			var weapons         = Physics2D.OverlapCircleAll(transform.position, OverlapRadius, LayerMask.GetMask("Guns"));
+			var weapon = FindWeaponCollision(weapons);
 			if ( !weapon ) {
 				return;
 			}
@@ -37,16 +47,26 @@ namespace GameJamEntry.Gameplay {
 			}
 			var newGunPos = gunComp.transform.position;
 			// drop old gun if exists
-			if ( Gun ) {
-				Gun.Drop();
-				Gun.transform.SetParent(null);
-				Gun.transform.position = newGunPos;
+			if ( _gun ) {
+				_gun.Drop();
+				_gun.transform.SetParent(null);
+				_gun.transform.position = newGunPos;
 			}
 			
-			Gun = gunComp;
-			Gun.transform.SetParent(GunHolder);
-			Gun.transform.position = GunHolder.position;
-			Gun.PickUp();
+			_gun = gunComp;
+			_gun.transform.SetParent(GunHolder);
+			_gun.transform.position = GunHolder.position;
+			_gun.PickUp();
+		}
+
+		BaseGun FindWeaponCollision(Collider2D[] collisions) {
+			foreach ( var collision in collisions ) {
+				var gunComp = collision.GetComponent<BaseGun>();
+				if ( gunComp && (gunComp != _gun) ) {
+					return gunComp;
+				}
+			}
+			return null;
 		}
 	}
 }

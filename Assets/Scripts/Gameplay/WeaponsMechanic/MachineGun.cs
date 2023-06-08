@@ -16,7 +16,21 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		Timer _betweenFiringTimer = new();
 		Timer _reloadTimer        = new();
 
-		GunStatus _gunStatus = GunStatus.Idle;
+		bool _isPressedFiring;
+
+		GunStatus _gunStatus {
+			get => _state;
+			set {
+				Debug.Log($"Change state from {_state} to {value}");
+				_state = value;
+			}
+		}
+
+		GunStatus _state;
+
+		void Start() {
+			AmmoInMagazineLeft = AmmoInMagazineTotal;
+		}
 
 		public override void PickUp() {
 			// Do nothing
@@ -30,8 +44,27 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 			if (_gunStatus != GunStatus.Idle) {
 				return;
 			}
+			if (AmmoInMagazineLeft <= 0) {
+				GoToReloadMagazine();
+				return;
+			}
+			_isPressedFiring = true;
+			FireBullet();
+		}
+
+		public override void EndFire() {
+			_gunStatus       = GunStatus.Idle;
+			_isPressedFiring = false;
+			_betweenFiringTimer.Deinit();
+			_reloadTimer.Deinit();
+		}
+
+		void FireBullet() {
+			if (AmmoInMagazineLeft <= 0) {
+				GoToReloadMagazine();
+				return;
+			}
 			Instantiate(_bulletPrefab, _bulletSpawnPoint.position, _bulletSpawnPoint.rotation);
-			
 			AmmoInMagazineLeft--;
 			if (AmmoInMagazineLeft <= 0) {
 				GoToReloadMagazine();
@@ -40,15 +73,12 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 			GoToDelayBetweenShots();
 		}
 
-		public override void EndFire() {
-			_gunStatus = GunStatus.Idle;
-			_betweenFiringTimer.Deinit();
-			_reloadTimer.Deinit();
-		}
-
 		void Update() {
 			_betweenFiringTimer.Tick(Time.deltaTime);
 			_reloadTimer.Tick(Time.deltaTime);
+			if ( _isPressedFiring && (_gunStatus == GunStatus.Idle) ) {
+				FireBullet();
+			}
 		}
 
 		#region DelayBetweenShotsBlock
@@ -68,12 +98,13 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		
 		void GoToReloadMagazine() {
 			_gunStatus = GunStatus.ReloadMagazine;
-			_betweenFiringTimer.Init(TransitionFromDelayBetweenShotsToIdle, DelayForMagazineReload, false);
+			_reloadTimer.Init(TransitionFromReloadMagazineToIdle, DelayForMagazineReload, false);
 		}
 
 		void TransitionFromReloadMagazineToIdle() {
 			AmmoInMagazineLeft = AmmoInMagazineTotal;
 			_gunStatus         = GunStatus.Idle;
+			StartFire();
 		}
 
 		#endregion
