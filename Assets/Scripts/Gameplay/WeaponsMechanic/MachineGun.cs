@@ -18,7 +18,7 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 
 		bool _isPressedFiring;
 
-		GunStatus _gunStatus {
+		GunStatus GunStatus {
 			get => _state;
 			set {
 				Debug.Log($"Change state from {_state} to {value}");
@@ -41,7 +41,7 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		}
 
 		public override void StartFire() {
-			if (_gunStatus != GunStatus.Idle) {
+			if (GunStatus != GunStatus.Idle) {
 				return;
 			}
 			if (AmmoInMagazineLeft <= 0) {
@@ -53,7 +53,7 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		}
 
 		public override void EndFire() {
-			_gunStatus       = GunStatus.Idle;
+			GunStatus       = GunStatus.Idle;
 			_isPressedFiring = false;
 			_betweenFiringTimer.Deinit();
 			_reloadTimer.Deinit();
@@ -76,7 +76,7 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		void Update() {
 			_betweenFiringTimer.Tick(Time.deltaTime);
 			_reloadTimer.Tick(Time.deltaTime);
-			if ( _isPressedFiring && (_gunStatus == GunStatus.Idle) ) {
+			if ( _isPressedFiring && (GunStatus == GunStatus.Idle) ) {
 				FireBullet();
 			}
 		}
@@ -84,12 +84,12 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		#region DelayBetweenShotsBlock
 		
 		void GoToDelayBetweenShots() {
-			_gunStatus = GunStatus.ReloadBetweenShots;
+			GunStatus = GunStatus.ReloadBetweenShots;
 			_betweenFiringTimer.Init(TransitionFromDelayBetweenShotsToIdle, DelayBetweenShots, false);
 		}
 
 		void TransitionFromDelayBetweenShotsToIdle() {
-			_gunStatus = GunStatus.Idle;
+			GunStatus = GunStatus.Idle;
 		}
 
 		#endregion
@@ -97,13 +97,13 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		#region ReloadMagazineBlock
 		
 		void GoToReloadMagazine() {
-			_gunStatus = GunStatus.ReloadMagazine;
+			GunStatus = GunStatus.ReloadMagazine;
 			_reloadTimer.Init(TransitionFromReloadMagazineToIdle, DelayForMagazineReload, false);
 		}
 
 		void TransitionFromReloadMagazineToIdle() {
 			AmmoInMagazineLeft = AmmoInMagazineTotal;
-			_gunStatus         = GunStatus.Idle;
+			GunStatus         = GunStatus.Idle;
 			StartFire();
 		}
 
