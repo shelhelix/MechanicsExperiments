@@ -1130,7 +1130,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _bulletPrefab: {fileID: 919999570072238650, guid: 27d60fddf35a34c338c59afded07576f, type: 3}
   _bulletSpawnPoint: {fileID: 1909762346}
-  DelayBetweenShots: 0.1
+  DelayBetweenShots: 0.3
   DelayForMagazineReload: 1
   AmmoInMagazineTotal: 30
   AmmoInMagazineLeft: 0
