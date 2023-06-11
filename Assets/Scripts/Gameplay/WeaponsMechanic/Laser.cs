@@ -1,17 +1,13 @@
-using GameComponentAttributes.Attributes;
 using UnityEngine;
 
 namespace GameJamEntry.Gameplay.WeaponsMechanic {
 	public class Laser : BaseGun {
-		[NotNullReference, SerializeField] LaserBeamView LaserBeamView;
-
 		[SerializeField] float FireMaxDuration = 2f;
 		[SerializeField] float ReloadTime = 1f;
 
 		public int AmmoTotal = 3;
 		public int AmmoLeft;
 		
-		GunStatus _status = GunStatus.Idle;
 
 		Timer _reloadTimer = new();
 
@@ -20,6 +16,11 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		float _heatTime;
 
 		public float OverheatNormalized => Mathf.Clamp01(_heatTime / FireMaxDuration);
+
+		public GunStatus Status { get; private set; } = GunStatus.Idle;
+		
+		public Transform HitTarget { get; private set; }
+
 		
 		public override void PickUp() {
 			AmmoLeft = AmmoTotal;
@@ -30,7 +31,7 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		}
 
 		public override void StartFire() {
-			if ( (_status != GunStatus.Idle) || (AmmoLeft <= 0) ) {
+			if ( (Status != GunStatus.Idle) || (AmmoLeft <= 0) ) {
 				return;
 			}
 			_isFiring = true;
@@ -38,8 +39,7 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		}
 
 		public override void EndFire() {
-			LaserBeamView.HideBeam();
-			_status = GunStatus.Idle;
+			Status = GunStatus.Idle;
 			_reloadTimer.Deinit();
 			_isFiring = false;
 		}
@@ -47,7 +47,7 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		void Update() {
 			_reloadTimer.Tick(Time.deltaTime);
 			UpdateHeat();
-			if ( _status == GunStatus.Firing ) {
+			if ( Status == GunStatus.Firing ) {
 				if (OverheatNormalized >= 1) {
 					GoToReload();
 				}
@@ -56,7 +56,7 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		}
 
 		void UpdateHeat() {
-			if ( _status == GunStatus.Firing ) {
+			if ( Status == GunStatus.Firing ) {
 				_heatTime = Mathf.Min(_heatTime + Time.deltaTime, FireMaxDuration);
 			} else {
 				_heatTime = Mathf.Max(_heatTime - Time.deltaTime * FireMaxDuration / ReloadTime, 0);
@@ -69,25 +69,24 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		}
 
 		void TryFire() {
-			if ( _status != GunStatus.Firing ) {
+			if ( Status != GunStatus.Firing ) {
 				return;
 			}
-			var target = RayCastFire();
-			LaserBeamView.ShowBeam(target);
+			HitTarget = RayCastFire();
 		}
 		
 		void GoToIdle() {
-			_status = GunStatus.Idle;
+			Status = GunStatus.Idle;
 		}
+		
 		void GoToFiring() {
-			_status = GunStatus.Firing;
+			Status = GunStatus.Firing;
 		}
 
 		#region ReloadBlock
 		
 		void GoToReload() {
-			LaserBeamView.HideBeam();
-			_status = GunStatus.ReloadMagazine;
+			Status = GunStatus.ReloadMagazine;
 			_reloadTimer.Init(ExitReloadState, ReloadTime, false);
 		}
 		

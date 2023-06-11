@@ -6,8 +6,19 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		public float MaxDistance;
 		
 		[NotNullReference, SerializeField] LineRenderer LineRenderer;
+		[NotNullReference, SerializeField] Laser        Laser;
 
 		Vector3 MaxEndPositions => transform.position + transform.up * MaxDistance;
+
+		void Update() {
+			if ( Laser.Status == GunStatus.Firing ) {
+				ShowBeam(Laser.HitTarget);
+			} else {
+				HideBeam();
+			}
+		}
+		
+		
 		
 		public void ShowBeam(Transform endPoint) {
 			LineRenderer.enabled = true;
