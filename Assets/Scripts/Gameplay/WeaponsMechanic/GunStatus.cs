@@ -4,5 +4,6 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		Firing,
 		ReloadBetweenShots,
 		ReloadMagazine,
+		Charging
 	}
 }
