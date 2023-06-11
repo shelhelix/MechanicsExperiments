@@ -39,7 +39,6 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 		
 		void Update() {
 			Charge();
-			print($"charge level: {ChargeLevel}");
 		}
 
 		void Charge() {

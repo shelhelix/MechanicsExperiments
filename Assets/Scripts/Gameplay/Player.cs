@@ -46,17 +46,25 @@ namespace GameJamEntry.Gameplay {
 				return;
 			}
 			var newGunPos = gunComp.transform.position;
+			DropOldGun(newGunPos);
+			PickUpGun(gunComp);
+			
+		}
+
+		void PickUpGun(BaseGun gun) {
+			_gun = gun;
+			_gun.transform.SetParent(GunHolder);
+			_gun.transform.position = GunHolder.position;
+			_gun.PickUp();
+		}
+
+		void DropOldGun(Vector3 pos) {
 			// drop old gun if exists
 			if ( _gun ) {
 				_gun.Drop();
 				_gun.transform.SetParent(null);
-				_gun.transform.position = newGunPos;
+				_gun.transform.position = pos;
 			}
-			
-			_gun = gunComp;
-			_gun.transform.SetParent(GunHolder);
-			_gun.transform.position = GunHolder.position;
-			_gun.PickUp();
 		}
 
 		BaseGun FindWeaponCollision(Collider2D[] collisions) {

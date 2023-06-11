@@ -26,7 +26,6 @@ namespace GameJamEntry.Gameplay.WeaponsMechanic {
 
 		public override void EndFire() {
 			_gunStatus = GunStatus.Idle;
-			
 		}
 	}
 }
